@@ -1,3 +1,0 @@
-https://www.youtube.com/watch?v=ybYMOKEW9IY
-
-g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -LC:\Development\SDL2_MinGW_32Bit\lib -lmingw32 -lSDL2main -SDL2
