@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_Image.h>
+#include <SDL_Mixer.h>
 #include <time.h>
 
 using namespace std;
@@ -9,9 +10,16 @@ using namespace std;
 /*
 Use this code to complile (only on my PC though...) :
 
-g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -IC:\Development\SDL2Image_MinGW_32Bits\include\SDL2 -LC:\Development\SDL2_MinGW_32Bit\lib -LC:\Development\SDL2Image_MinGW_32Bits\lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_Image -o SDL_Game
+g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -IC:\Development\SDL2Image_MinGW_32Bits\include\SDL2 -IC:\Development\SDL2Mixer_MinGW_32Bit\include\SDL2 -LC:\Development\SDL2_MinGW_32Bit\lib -LC:\Development\SDL2Image_MinGW_32Bits\lib -LC:\Development\SDL2Mixer_MinGW_32Bit\lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_Image -lSDL2_Mixer -o SDL_Game
 
 */
+
+
+//AREA PRA TESTE
+
+Mix_Chunk *AudioItem = NULL;
+
+Mix_Chunk *AudioDeath = NULL;
 
 //Defines max size
 const int maxSize = 70;
@@ -53,7 +61,9 @@ typedef struct {
 
 void Initialize() {
 
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO);
+
+	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
 	
 	gWindow = SDL_CreateWindow("Cobrinha", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_SIZE_X, WINDOW_SIZE_Y, SDL_WINDOW_OPENGL);
 	if (gWindow == NULL) {		
@@ -114,14 +124,13 @@ void EndAll() {
 
 }
 
-void ChangeFood() {
-
-}
-
-
 int main(int argc, char* agrs[]) {
 
     Initialize();
+
+    //References Audio
+    AudioItem = Mix_LoadWAV("Assets/Audio/itemgetaudio.wav");
+    AudioDeath = Mix_LoadWAV("Assets/Audio/audiodeath.wav");
 
     //Snake Size
     int pSize = 1, inFront = 0, nextFront, nextToSave;
@@ -231,7 +240,14 @@ int main(int argc, char* agrs[]) {
 			}
 
 
+			//If food is in the next place that snake will go...
 			if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
+
+				if(Mix_PlayChannel(-1, AudioItem, 0) == -1) {
+				    printf("Mix_PlayChannel: %s\n",Mix_GetError());
+				    // may be critical error, or maybe just no channels were free.
+				    // you could allocated another channel in that case...
+				}
 
 				foodPos.x = -60;
 				foodPos.y = 0;	
@@ -287,6 +303,7 @@ int main(int argc, char* agrs[]) {
 						if (playerPos[i].x == newPos.x && playerPos[i].y == newPos.y) {
 							willCrash = true;
 							cout << "PERDEU! APERTE ENTER PARA REINICIAR!" << endl;
+							Mix_PlayChannel(-1, AudioDeath, 0);
 						}
 					}
 				}
