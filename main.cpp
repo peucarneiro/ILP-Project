@@ -63,7 +63,7 @@ void Initialize() {
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO);
 
-	Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
+	Mix_OpenAudio(44100, AUDIO_S16, 2, 512);
 	
 	gWindow = SDL_CreateWindow("Cobrinha", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_SIZE_X, WINDOW_SIZE_Y, SDL_WINDOW_OPENGL);
 	if (gWindow == NULL) {		
@@ -118,6 +118,8 @@ void EndAll() {
 
 	//Destroy Window
 	SDL_DestroyWindow(gWindow);
+
+	Mix_CloseAudio();
 
 	//Clean up subsystems
 	SDL_Quit();
@@ -185,25 +187,25 @@ int main(int argc, char* agrs[]) {
 
 			} else if (getInput) {
 
-				if (e.key.keysym.sym == SDLK_RIGHT && pSpeed.x == 0) {
+				if (e.key.keysym.sym == SDLK_RIGHT && pSpeed.x == 0 && e.type == SDL_KEYDOWN) {
 
 					pSpeed.x = 20;
 					pSpeed.y = 0;
 					getInput = false;
 
-				} else if (e.key.keysym.sym == SDLK_LEFT && pSpeed.x == 0) {
+				} else if (e.key.keysym.sym == SDLK_LEFT && pSpeed.x == 0 && e.type == SDL_KEYDOWN) {
 
 					pSpeed.x = -20;
 					pSpeed.y = 0;
 					getInput = false;
 
-				} else if (e.key.keysym.sym == SDLK_UP && pSpeed.y == 0) {
+				} else if (e.key.keysym.sym == SDLK_UP && pSpeed.y == 0 && e.type == SDL_KEYDOWN) {
 
 					pSpeed.x = 0;
 					pSpeed.y = -20;
 					getInput = false;
 
-				} else if (e.key.keysym.sym == SDLK_DOWN && pSpeed.y == 0) {
+				} else if (e.key.keysym.sym == SDLK_DOWN && pSpeed.y == 0 && e.type == SDL_KEYDOWN) {
 
 					pSpeed.x = 0;
 					pSpeed.y = 20;
