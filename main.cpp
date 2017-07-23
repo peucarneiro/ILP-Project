@@ -2,13 +2,26 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_Image.h>
+#include <time.h>
 
 using namespace std;
 
-//g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -IC:\Development\SDL2Image_MinGW_32Bits\include\SDL2 -LC:\Development\SDL2_MinGW_32Bit\lib -LC:\Development\SDL2Image_MinGW_32Bits\lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_Image -o SDL_Game
+/*
+Use this code to complile (only on my PC though...) :
+
+g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -IC:\Development\SDL2Image_MinGW_32Bits\include\SDL2 -LC:\Development\SDL2_MinGW_32Bit\lib -LC:\Development\SDL2Image_MinGW_32Bits\lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_Image -o SDL_Game
+
+*/
 
 //Defines max size
-const int maxSize = 10;
+const int maxSize = 30;
+//Defines time per ScreenUpdate in miliseconds
+const int upTime = 100;
+
+//Checks if snake will crash
+bool willCrash = false;
+//Checks if new food pos is OK
+bool isPosOk = false;
 
 //Window
 SDL_Window* gWindow = NULL;
@@ -22,7 +35,7 @@ SDL_Surface* foodImage = IMG_Load("Assets/Art/food.png");
 //Wall Image
 SDL_Surface* wallImage = IMG_Load("Assets/Art/wall.png");
 
-//Player speed (-1 or 0 or 1)  in x and y
+//Player speed (-20 or 0 or 20)  in x and y
 typedef struct {
 	int x;
 	int y;
@@ -44,6 +57,9 @@ void Initialize() {
 	}
 
 	gScreenSurface = SDL_GetWindowSurface(gWindow);
+
+	//Random seed
+	srand (time(NULL));
 }
 
 void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {	
@@ -55,6 +71,7 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 	targetRect.w = 20;
 	targetRect.h = 20;
 
+	
 	for (int i = 0; i < size; i++) {
 		
 		targetRect.x = pPos[i].x;
@@ -62,6 +79,7 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 
 		SDL_BlitSurface(pImage, NULL, gScreenSurface, &targetRect);
 	}
+
 
 	SDL_BlitSurface(foodImage, NULL, gScreenSurface, &fPos);	
 
@@ -76,6 +94,10 @@ void EndAll() {
 
 	//Clean up subsystems
 	SDL_Quit();
+
+}
+
+void ChangeFood() {
 
 }
 
@@ -94,7 +116,7 @@ int main(int argc, char* agrs[]) {
 
 	//Player initial speed		
 	speed pSpeed;
-	pSpeed.x = 1;
+	pSpeed.x = 20;
 	pSpeed.y = 0;
 
 	//Get the position of where the player will move to
@@ -128,10 +150,10 @@ int main(int argc, char* agrs[]) {
 	UpdateGameScreen(playerPos, foodPos, pSize);
 
 	
-	while (!quit) {
+	while (!quit && pSize != maxSize) {
 		if (SDL_PollEvent(&e)) {
 
-			if (e.key.keysym.sym == SDLK_ESCAPE || e.type == SDL_QUIT) {
+			if (e.key.keysym.sym == SDLK_ESCAPE) {
 
 				quit = true;
 
@@ -139,26 +161,26 @@ int main(int argc, char* agrs[]) {
 
 				if (e.key.keysym.sym == SDLK_RIGHT && pSpeed.x == 0) {
 
-					pSpeed.x = 1;
+					pSpeed.x = 20;
 					pSpeed.y = 0;
 					getInput = false;
 
 				} else if (e.key.keysym.sym == SDLK_LEFT && pSpeed.x == 0) {
 
-					pSpeed.x = -1;
+					pSpeed.x = -20;
 					pSpeed.y = 0;
 					getInput = false;
 
 				} else if (e.key.keysym.sym == SDLK_UP && pSpeed.y == 0) {
 
 					pSpeed.x = 0;
-					pSpeed.y = -1;
+					pSpeed.y = -20;
 					getInput = false;
 
 				} else if (e.key.keysym.sym == SDLK_DOWN && pSpeed.y == 0) {
 
 					pSpeed.x = 0;
-					pSpeed.y = 1;
+					pSpeed.y = 20;
 					getInput = false;
 
 				}
@@ -167,16 +189,7 @@ int main(int argc, char* agrs[]) {
 
 		endTime = SDL_GetTicks();
 
-		/*
-
-		Terminar de ajeitar essa parte depois
-		NAO ESQUECA
-		OLHE ISSO
-		AQUI
-		AQUI
-		AQUI
-
-		if (endTime - startTime >= 500) {
+		if (endTime - startTime >= upTime) {
 
 			nextFront = inFront - 1;			
 
@@ -184,60 +197,110 @@ int main(int argc, char* agrs[]) {
 				nextFront = pSize - 1;
 			}
 
-			newPos.x = targetPos[inFront].x + pSpeed.x * 20;
-			newPos.y = targetPos[inFront].y + pSpeed.y * 20;
+			newPos.x = playerPos[inFront].x + pSpeed.x;
+			newPos.y = playerPos[inFront].y + pSpeed.y;
 
 
 			if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
-				foodPos.x += 60;
-				foodPos.y += 40;
+
+				foodPos.x = -60;
+				foodPos.y = 0;	
+
+				int changePos = inFront;
+
+				orderedPos[0] = newPos;
+
+				for (int i = 1; i < pSize + 1; i++) {
+
+					orderedPos[i] = playerPos[changePos];
+
+					changePos++;
+
+					if (changePos == pSize) {
+						changePos = 0;
+					}
+				}
+
+				//New tail becomes old tail
+				playerPos[pSize] = playerPos[nextFront];
+
+				for (int i = 0; i < pSize + 1; i++) {
+					playerPos[i] = orderedPos[i];
+				}
 
 				pSize++;
 
-				orderedPos[0].x = newPos.x;
-				orderedPos[0].y = newPos.y;
-
-				orderedPos[pSize - 1].x = targetPos[nextFront].x;
-				orderedPos[pSize - 1].y = targetPos[nextFront].y;
-				nextToSave = inFront;
-
-				for (int i = 1; i < pSize - 1; i++) {
-					orderedPos[i].x = targetPos[nextToSave].x;
-					orderedPos[i].y = targetPos[nextToSave].y;
-
-					nextToSave++;
-
-					if (nextToSave == pSize - 1) {
-						nextToSave == 0;
-					}
-				}
-
-
-				for (int i = 0; i < pSize - 1; i++) {
-					targetPos[i].x = orderedPos[i].x;
-					targetPos[i].y = orderedPos[i].y;
-
-					nextToSave++;
-
-					if (nextToSave == pSize - 1) {
-						nextToSave == 0;
-					}
-				}
-
 				inFront = 0;
-				nextFront = inFront;				
+
+				while (!isPosOk) {
+					isPosOk = true;
+
+					foodPos.x = rand() % 780 + 1;
+					foodPos.y = rand() % 580 + 1;
+
+					foodPos.x -= (foodPos.x % 40);
+					foodPos.y -= (foodPos.y % 40);
+
+					for (int i = 0; i < pSize; i++) {
+
+						if (foodPos.x == playerPos[i].x && foodPos.y == playerPos[i].y) {
+							isPosOk = false;			
+						}
+					}
+				}
 
 			} else {
-				targetPos[nextFront].x = newPos.x;
-				targetPos[nextFront].y = newPos.y;
-				inFront = nextFront;
+
+				for (int i = 0; i < pSize; i++) {
+
+					if (i != nextFront) {
+						if (playerPos[i].x == newPos.x && playerPos[i].y == newPos.y) {
+							willCrash = true;
+							cout << "PERDEU! APERTE ENTER PARA REINICIAR!" << endl;
+						}
+					}
+				}
+
+				if (!willCrash) {
+					
+					playerPos[nextFront].x = newPos.x;
+					playerPos[nextFront].y = newPos.y;
+					
+					inFront = nextFront;
+					
+					startTime = SDL_GetTicks();
+
+					getInput = true;
+				}
 			}
+			
+		}	
 
-			getInput = true;
-			startTime = SDL_GetTicks();
-		}
+		while (willCrash && !quit) {
 
-		*/
+			if (SDL_PollEvent(&e)) {
+
+				if (e.key.keysym.sym == SDLK_ESCAPE) {
+
+					quit = true;
+
+				}			
+
+				if (e.key.keysym.sym == SDLK_RETURN) {
+					pSize = 1;
+
+					for (int i = 0; i < maxSize; i++) {
+						playerPos[i].x = 100;
+						playerPos[i].y = 100;
+				 	}
+
+				 	startTime = SDL_GetTicks();
+					willCrash = false;
+				}
+			}
+		}	
+
+		isPosOk = false;
 
 		UpdateGameScreen(playerPos, foodPos, pSize);
 	}
