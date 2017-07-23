@@ -14,9 +14,13 @@ g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -IC:\Development\SDL
 */
 
 //Defines max size
-const int maxSize = 30;
+const int maxSize = 70;
+
 //Defines time per ScreenUpdate in miliseconds
 const int upTime = 100;
+
+//Define Window sizes
+const int WINDOW_SIZE_X = 1000, WINDOW_SIZE_Y = 600;
 
 //Checks if snake will crash
 bool willCrash = false;
@@ -51,7 +55,7 @@ void Initialize() {
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
 	
-	gWindow = SDL_CreateWindow("Cobrinha", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL);
+	gWindow = SDL_CreateWindow("Cobrinha", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_SIZE_X, WINDOW_SIZE_Y, SDL_WINDOW_OPENGL);
 	if (gWindow == NULL) {		
 		printf("Could not create window : %s\n", SDL_GetError());		
 	}
@@ -64,13 +68,26 @@ void Initialize() {
 
 void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {	
 
-	SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
-
 	//Player rect in screen
 	SDL_Rect targetRect;
 	targetRect.w = 20;
 	targetRect.h = 20;
 
+	//Difine Rect to paint black and white (for now)
+	SDL_Rect blackRect, whiteRect;
+	blackRect.x = 0;
+	blackRect.y = 0;
+	blackRect.w = 800;
+	blackRect.h = 600;
+	whiteRect.x = 800;
+	whiteRect.y = 0;	
+	whiteRect.w = WINDOW_SIZE_X - 800;
+	whiteRect.h = 600;
+
+	//Paints game background
+	SDL_FillRect(gScreenSurface, &blackRect, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
+	//Paints score menu background
+	SDL_FillRect(gScreenSurface, &whiteRect, SDL_MapRGB(gScreenSurface->format, 255, 255, 255));
 	
 	for (int i = 0; i < size; i++) {
 		
@@ -189,7 +206,7 @@ int main(int argc, char* agrs[]) {
 
 		endTime = SDL_GetTicks();
 
-		if (endTime - startTime >= upTime) {
+		if (endTime - startTime >= upTime - (pSize)) {
 
 			nextFront = inFront - 1;			
 
@@ -199,6 +216,19 @@ int main(int argc, char* agrs[]) {
 
 			newPos.x = playerPos[inFront].x + pSpeed.x;
 			newPos.y = playerPos[inFront].y + pSpeed.y;
+
+			if (newPos.x == -20) {
+				newPos.x = 780;
+			}
+			else if (newPos.x == 800) {
+				newPos.x = 0;
+			}
+			else if (newPos.y == -20) {
+				newPos.y = 580;
+			}
+			else if (newPos.y == 600) {
+ 				newPos.y = 0;
+			}
 
 
 			if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
