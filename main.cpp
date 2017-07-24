@@ -21,6 +21,45 @@ Mix_Chunk *AudioItem = NULL;
 
 Mix_Chunk *AudioDeath = NULL;
 
+
+
+
+
+
+//Map                                          0 == Non-Wall Space      1 == Wall
+const int Map[30][40] = {
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+	{0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+};
+
 //Defines max size
 const int maxSize = 70;
 
@@ -83,6 +122,10 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 	targetRect.w = 20;
 	targetRect.h = 20;
 
+	SDL_Rect wallRect;
+	wallRect.w = 20;
+	wallRect.h = 20;
+
 	//Difine Rect to paint black and white (for now)
 	SDL_Rect blackRect, whiteRect;
 	blackRect.x = 0;
@@ -98,7 +141,24 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 	SDL_FillRect(gScreenSurface, &blackRect, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
 	//Paints score menu background
 	SDL_FillRect(gScreenSurface, &whiteRect, SDL_MapRGB(gScreenSurface->format, 255, 255, 255));
-	
+
+
+		
+	//Paints Wall on screen
+	for (int i = 0; i < 30; i++) {
+
+		for (int k = 0; k < 40; k++) {
+
+			if (Map[i][k] == 1) {
+				wallRect.x = k * 20;
+				wallRect.y = i * 20;
+
+				SDL_BlitSurface(wallImage, NULL, gScreenSurface, &wallRect);
+			}
+		}
+	}
+
+	//Paints Player on screen
 	for (int i = 0; i < size; i++) {
 		
 		targetRect.x = pPos[i].x;
@@ -107,9 +167,9 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 		SDL_BlitSurface(pImage, NULL, gScreenSurface, &targetRect);
 	}
 
-
+	//Paints Food on screen
 	SDL_BlitSurface(foodImage, NULL, gScreenSurface, &fPos);	
-
+	//Updates Screen
 	SDL_UpdateWindowSurface(gWindow);
 
 }
@@ -135,7 +195,7 @@ int main(int argc, char* agrs[]) {
     AudioDeath = Mix_LoadWAV("Assets/Audio/audiodeath.wav");
 
     //Snake Size
-    int pSize = 1, inFront = 0, nextFront, nextToSave;
+    int pSize = 3, inFront = 0, nextFront, nextToSave;
 
     //Event Handler
 	SDL_Event e;
@@ -156,6 +216,10 @@ int main(int argc, char* agrs[]) {
 	//First piece of player pos
 	playerPos[0].x = 100;
 	playerPos[0].y = 100;
+	playerPos[1].x = 80;
+	playerPos[1].y = 100;
+	playerPos[2].x = 60;
+	playerPos[3].y = 100;
 
 	//Zero all other pieces position
 	for (int i = 1; i < pSize; i++)	{
@@ -280,6 +344,7 @@ int main(int argc, char* agrs[]) {
 
 				inFront = 0;
 
+				//Ramdomize food position concerning walls and player positions
 				while (!isPosOk) {
 					isPosOk = true;
 
@@ -291,7 +356,7 @@ int main(int argc, char* agrs[]) {
 
 					for (int i = 0; i < pSize; i++) {
 
-						if (foodPos.x == playerPos[i].x && foodPos.y == playerPos[i].y) {
+						if ((foodPos.x == playerPos[i].x && foodPos.y == playerPos[i].y) || (Map[foodPos.y / 20][foodPos.x /20] == 1)) {
 							isPosOk = false;			
 						}
 					}
@@ -299,6 +364,7 @@ int main(int argc, char* agrs[]) {
 
 			} else {
 
+				//Checks for snake part on next position
 				for (int i = 0; i < pSize; i++) {
 
 					if (i != nextFront) {
@@ -310,16 +376,39 @@ int main(int argc, char* agrs[]) {
 					}
 				}
 
+
+
+				for (int i = 0; i < 30; i++) {
+
+					for (int k = 0; k < 40; k++) {
+
+						if (Map[i][k] == 1) {
+
+						}
+					}
+				}
+
 				if (!willCrash) {
 					
-					playerPos[nextFront].x = newPos.x;
-					playerPos[nextFront].y = newPos.y;
-					
-					inFront = nextFront;
-					
-					startTime = SDL_GetTicks();
+					//Checks for block in next position
+					if (Map[newPos.y / 20][newPos.x / 20] == 1) {
 
-					getInput = true;
+						willCrash = true;
+						cout << "PERDEU! APERTE ENTER PARA REINICIAR!" << endl;
+						Mix_PlayChannel(-1, AudioDeath, 0);
+				
+					} else {
+
+						playerPos[nextFront].x = newPos.x;
+						playerPos[nextFront].y = newPos.y;
+						
+						inFront = nextFront;
+						
+						startTime = SDL_GetTicks();
+
+						getInput = true;
+
+					}
 				}
 			}
 			
@@ -336,18 +425,30 @@ int main(int argc, char* agrs[]) {
 				}			
 
 				if (e.key.keysym.sym == SDLK_RETURN) {
-					pSize = 1;
+					pSize = 3;
 
 					for (int i = 0; i < maxSize; i++) {
-						playerPos[i].x = 100;
-						playerPos[i].y = 100;
+						playerPos[i].x = 0;
+						playerPos[i].y = 0;
 				 	}
+
+				 	playerPos[0].x = 100;
+					playerPos[0].y = 100;
+					playerPos[1].x = 80;
+					playerPos[1].y = 100;
+					playerPos[2].x = 60;
+					playerPos[3].y = 100;
+
+					pSpeed.x = 20;
+					pSpeed.y = 0;
 
 				 	startTime = SDL_GetTicks();
 					willCrash = false;
 				}
 			}
-		}	
+
+			getInput = false;
+		}
 
 		isPosOk = false;
 
