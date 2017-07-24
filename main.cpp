@@ -243,7 +243,7 @@ int main(int argc, char* agrs[]) {
 
 	
 	while (!quit && pSize != maxSize) {
-		if (SDL_PollEvent(&e)) {
+		while (SDL_PollEvent(&e)) {
 
 			if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) || e.type == SDL_QUIT) {
 				cout << "Entrou no IF" << endl;
