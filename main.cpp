@@ -7,23 +7,10 @@
 
 using namespace std;
 
-/*
-Use this code to complile (only on my PC though...) :
-
-g++ main.cpp -IC:\Development\SDL2_MinGW_32Bit\include\SDL2 -IC:\Development\SDL2Image_MinGW_32Bits\include\SDL2 -IC:\Development\SDL2Mixer_MinGW_32Bit\include\SDL2 -LC:\Development\SDL2_MinGW_32Bit\lib -LC:\Development\SDL2Image_MinGW_32Bits\lib -LC:\Development\SDL2Mixer_MinGW_32Bit\lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_Image -lSDL2_Mixer -o SDL_Game
-
-*/
-
-
-//AREA PRA TESTE
-
+//Audio that plays on item get
 Mix_Chunk *AudioItem = NULL;
-
+//Audio played on death
 Mix_Chunk *AudioDeath = NULL;
-
-
-
-
 
 
 //Map                                          0 == Non-Wall Space      1 == Wall
@@ -71,8 +58,6 @@ const int WINDOW_SIZE_X = 1000, WINDOW_SIZE_Y = 600;
 
 //Checks if snake will crash
 bool willCrash = false;
-//Checks if new food pos is OK
-bool isPosOk = false;
 
 //Window
 SDL_Window* gWindow = NULL;
@@ -105,17 +90,14 @@ void Initialize() {
 	Mix_OpenAudio(44100, AUDIO_S16, 2, 512);
 	
 	gWindow = SDL_CreateWindow("Cobrinha", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_SIZE_X, WINDOW_SIZE_Y, SDL_WINDOW_OPENGL);
-	if (gWindow == NULL) {		
-		printf("Could not create window : %s\n", SDL_GetError());		
-	}
 
 	gScreenSurface = SDL_GetWindowSurface(gWindow);
 
-	//Random seed
+	//Random seed for rand() function
 	srand (time(NULL));
 }
 
-void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {	
+void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {	
 
 	//Player rect in screen
 	SDL_Rect playerRect;
@@ -142,7 +124,6 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 	//Paints score menu background
 	SDL_FillRect(gScreenSurface, &whiteRect, SDL_MapRGB(gScreenSurface->format, 255, 255, 255));
 
-
 		
 	//Paints Wall on screen
 	for (int i = 0; i < 30; i++) {
@@ -162,7 +143,7 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 	for (int i = 0; i < size; i++) {
 		
 		playerRect.x = pPos[i].x;
-		playerRect.y = pPos[i].y;
+		playerRect.y = pPos[i].y;					
 
 		SDL_BlitSurface(pImage, NULL, gScreenSurface, &playerRect);
 	}
@@ -173,6 +154,37 @@ void UpdateGameScreen(position pPos[maxSize], SDL_Rect fPos, int size) {
 	SDL_UpdateWindowSurface(gWindow);
 
 }
+
+SDL_Rect FoodRandomizer(SDL_Rect f, position player[], int size) {
+
+	bool isPosFree = false;
+
+	while (!isPosFree) {
+
+		isPosFree = true;
+
+		f.x = rand() % 780 + 1;
+		f.y = rand() % 580 + 1;
+
+		f.x -= (f.x % 40);
+		f.y -= (f.y % 40);
+
+		//Checks if there is a player on next position
+		for (int i = 0; i < size; i++) {
+
+			if ((f.x == player[i].x && f.y == player[i].y)) {
+				isPosFree = false;			
+			}
+		}
+		//Check if there is a wall on the next position		
+		if (Map[f.y / 20][f.x /20] == 1) {
+			isPosFree = false;
+		}
+	}
+
+	return f;
+}
+
 
 void EndAll() {
 
@@ -216,9 +228,9 @@ int main(int argc, char* agrs[]) {
 	//First piece of player pos
 	playerPos[0].x = 400;
 	playerPos[0].y = 300;
-	playerPos[1].x = 380;
+	playerPos[1].x = 400;
 	playerPos[1].y = 300;
-	playerPos[2].x = 360;
+	playerPos[2].x = 400;
 	playerPos[2].y = 300;
 
 	//Zero all other pieces position
@@ -236,6 +248,9 @@ int main(int argc, char* agrs[]) {
 	foodPos.w = 20;
 	foodPos.h = 20;
 
+	//Ramdomize food position concerning walls and player positions
+	foodPos = FoodRandomizer(foodPos, playerPos, pSize);
+
 	//Time Handler  --  SDL_GetTicks() gets the miliseconds passed since Init
 	int startTime = SDL_GetTicks(), endTime;
 	
@@ -245,10 +260,9 @@ int main(int argc, char* agrs[]) {
 	while (!quit && pSize != maxSize) {
 		while (SDL_PollEvent(&e)) {
 
+			//Checks if player clicked on X or pushed Esc
 			if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) || e.type == SDL_QUIT) {
-				cout << "Entrou no IF" << endl;
 				quit = true;
-				cout << "quit = true" << endl;
 
 			} else if (getInput) {
 
@@ -310,20 +324,14 @@ int main(int argc, char* agrs[]) {
 			//If food is in the next place that snake will go...
 			if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
 
-				if(Mix_PlayChannel(-1, AudioItem, 0) == -1) {
-				    printf("Mix_PlayChannel: %s\n",Mix_GetError());
-				    // may be critical error, or maybe just no channels were free.
-				    // you could allocated another channel in that case...
-				}
+				Mix_PlayChannel(-1, AudioItem, 0);
 
 				foodPos.x = -60;
 				foodPos.y = 0;	
 
 				int changePos = inFront;
 
-				orderedPos[0] = newPos;
-
-				for (int i = 1; i < pSize + 1; i++) {
+				for (int i = 0; i < pSize + 1; i++) {
 
 					orderedPos[i] = playerPos[changePos];
 
@@ -346,22 +354,7 @@ int main(int argc, char* agrs[]) {
 				inFront = 0;
 
 				//Ramdomize food position concerning walls and player positions
-				while (!isPosOk) {
-					isPosOk = true;
-
-					foodPos.x = rand() % 780 + 1;
-					foodPos.y = rand() % 580 + 1;
-
-					foodPos.x -= (foodPos.x % 40);
-					foodPos.y -= (foodPos.y % 40);
-
-					for (int i = 0; i < pSize; i++) {
-
-						if ((foodPos.x == playerPos[i].x && foodPos.y == playerPos[i].y) || (Map[foodPos.y / 20][foodPos.x /20] == 1)) {
-							isPosOk = false;			
-						}
-					}
-				}
+				foodPos = FoodRandomizer(foodPos, playerPos, pSize);				
 
 			} else {
 
@@ -371,20 +364,7 @@ int main(int argc, char* agrs[]) {
 					if (i != nextFront) {
 						if (playerPos[i].x == newPos.x && playerPos[i].y == newPos.y) {
 							willCrash = true;
-							cout << "PERDEU! APERTE ENTER PARA REINICIAR!" << endl;
 							Mix_PlayChannel(-1, AudioDeath, 0);
-						}
-					}
-				}
-
-
-
-				for (int i = 0; i < 30; i++) {
-
-					for (int k = 0; k < 40; k++) {
-
-						if (Map[i][k] == 1) {
-
 						}
 					}
 				}
@@ -395,7 +375,6 @@ int main(int argc, char* agrs[]) {
 					if (Map[newPos.y / 20][newPos.x / 20] == 1) {
 
 						willCrash = true;
-						cout << "PERDEU! APERTE ENTER PARA REINICIAR!" << endl;
 						Mix_PlayChannel(-1, AudioDeath, 0);
 				
 					} else {
@@ -417,47 +396,48 @@ int main(int argc, char* agrs[]) {
 
 		while (willCrash && !quit) {
 
-			if (SDL_PollEvent(&e)) {
+			while (SDL_PollEvent(&e)) {
 
 				if ((e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) || e.type == SDL_QUIT) {
 
 					quit = true;
 
-				}			
+				} else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN) {
+					
+					pSize = 3;					
 
-				if (e.key.keysym.sym == SDLK_RETURN) {
-					pSize = 3;
+			 		playerPos[0].x = 400;
+					playerPos[0].y = 300;
+					playerPos[1].x = 400;
+					playerPos[1].y = 300;
+					playerPos[2].x = 400;
+					playerPos[2].y = 300;
 
-					for (int i = 0; i < maxSize; i++) {
+					for (int i = 3; i < maxSize; i++) {
 						playerPos[i].x = 0;
 						playerPos[i].y = 0;
 				 	}
 
-				 		playerPos[0].x = 400;
-						playerPos[0].y = 300;
-						playerPos[1].x = 400;
-						playerPos[1].y = 300;
-						playerPos[2].x = 400;
-						playerPos[2].y = 300;
+				 	//Ramdomize food position concerning walls and player positions
+					foodPos = FoodRandomizer(foodPos, playerPos, pSize);
 
 					pSpeed.x = 20;
 					pSpeed.y = 0;
 
-				 	startTime = SDL_GetTicks();
-					willCrash = false;
+				 	//startTime = SDL_GetTicks();
+					willCrash = false;				
+
 				}
 			}
 
 			getInput = false;
-		}
-
-		isPosOk = false;
+		}		
 
 		UpdateGameScreen(playerPos, foodPos, pSize);
 	}
 
-    EndAll();    
-	return 0;
+    EndAll();        
+    return 0;
 }
 
 
