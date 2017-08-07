@@ -1,22 +1,24 @@
 #include <iostream>
 #include <stdio.h>
 #include <SDL.h>
-#include <SDL_Image.h>
-#include <SDL_Mixer.h>
+#include <SDL_image.h>
+#include <SDL_mixer.h>
+#include <SDL_ttf.h>
+#include <string>
 #include <time.h>
 
 using namespace std;
 
-//Audio that plays on item get
-Mix_Chunk *AudioItem = NULL;
-//Audio played on death
-Mix_Chunk *AudioDeath = NULL;
+
+//String para teste
+string palavra = " Oi";
+
+
 
 //Number of Maps
 const int numberOfMaps = 5;
 //Current map number
-int currentMap = 1;
-
+int currentMap = 0;
 //Map                                          0 == Non-Wall Space      1 == Wall
 const int Map[numberOfMaps][30][40] = {
 
@@ -197,6 +199,9 @@ const int maxSize = 70;
 //Defines time per ScreenUpdate in miliseconds
 const int upTime = 100;
 
+//Score in number
+int Score = 0;
+
 //Define Window sizes
 const int WINDOW_SIZE_X = 1000, WINDOW_SIZE_Y = 600;
 
@@ -209,11 +214,30 @@ SDL_Window* gWindow = NULL;
 //Surface in Screen
 SDL_Surface* gScreenSurface = NULL;	
 //Player image (Cobrinha)
-SDL_Surface* pImage = IMG_Load("Assets/Art/player.png");
+SDL_Surface* pImage = NULL;
 //Food Image
-SDL_Surface* foodImage = IMG_Load("Assets/Art/food.png");
+SDL_Surface* foodImage = NULL;
 //Wall Image
-SDL_Surface* wallImage = IMG_Load("Assets/Art/wall.png");
+SDL_Surface* wallImage = NULL;
+
+//Audio that plays on item get
+Mix_Chunk *AudioItem = NULL;
+//Audio played on death
+Mix_Chunk *AudioDeath = NULL;
+
+//Font size
+const int fontSize = 24;
+//Text Font
+TTF_Font* tFont = NULL;
+//Title Font
+TTF_Font* tTitleFont = NULL;
+//Color of text
+SDL_Color tColor = {255, 0, 0};
+//Title surface text
+SDL_Surface* tTitleSurface = NULL;
+//Text surface
+SDL_Surface* tSurface = NULL;
+
 
 //Player speed (-20 or 0 or 20)  in x and y
 typedef struct {
@@ -231,6 +255,10 @@ void Initialize() {
 
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO);
 
+	IMG_Init(IMG_INIT_PNG);
+
+	TTF_Init();
+
 	Mix_OpenAudio(44100, AUDIO_S16, 2, 512);
 	
 	gWindow = SDL_CreateWindow("Cobrinha", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_SIZE_X, WINDOW_SIZE_Y, SDL_WINDOW_OPENGL);
@@ -241,6 +269,27 @@ void Initialize() {
 	srand (time(NULL));
 }
 
+void LoadAssets() {
+
+	//Load player image
+	pImage = IMG_Load("Assets/Art/player.png");
+	//Load food image
+	foodImage = IMG_Load("Assets/Art/food.png");
+	//Load wall image
+	wallImage = IMG_Load("Assets/Art/wall.png");
+
+	//Load font
+	tFont = TTF_OpenFont("Assets/Fonts/OpenSans-Regular.ttf", fontSize);
+	//Load title font
+	tTitleFont = TTF_OpenFont("Assets/Fonts/OpenSans-Regular.ttf", fontSize + 6);
+	//Make surface with font
+    tTitleSurface = TTF_RenderText_Solid(tTitleFont, palavra, tColor);    
+
+    //Load audio files
+    AudioItem = Mix_LoadWAV("Assets/Audio/itemgetaudio.wav");
+    AudioDeath = Mix_LoadWAV("Assets/Audio/audiodeath.wav");
+}
+
 void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {	
 
 	//Player rect in screen
@@ -248,9 +297,15 @@ void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {
 	playerRect.w = 20;
 	playerRect.h = 20;
 
+	//Wall rect in screen
 	SDL_Rect wallRect;
 	wallRect.w = 20;
 	wallRect.h = 20;
+
+	//Text rect (this is for the title since it is the first to render)
+	SDL_Rect tRect;
+	tRect.x = 850; //Center title
+	tRect.y = 10;
 
 	//Difine Rect to paint black and white (for now)
 	SDL_Rect blackRect, whiteRect;
@@ -291,6 +346,16 @@ void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {
 
 		SDL_BlitSurface(pImage, NULL, gScreenSurface, &playerRect);
 	}
+	
+	//Title
+	SDL_BlitSurface(tTitleSurface, NULL, gScreenSurface, &tRect);
+	//Score
+	tRect.x = 800; //Change rect pos x
+	tRect.y = 70; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Score: ", tColor);	
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+
 
 	//Paints Food on screen
 	SDL_BlitSurface(foodImage, NULL, gScreenSurface, &fPos);	
@@ -329,16 +394,15 @@ SDL_Rect FoodRandomizer(SDL_Rect f, position player[], int size) {
 	return f;
 }
 
-
 void EndAll() {
 
-	//Destroy Window
 	SDL_DestroyWindow(gWindow);
 
 	Mix_CloseAudio();
 
-	//Clean up subsystems
 	SDL_Quit();
+	TTF_Quit();
+	IMG_Quit();
 
 }
 
@@ -346,9 +410,7 @@ int main(int argc, char* agrs[]) {
 
     Initialize();
 
-    //References Audio
-    AudioItem = Mix_LoadWAV("Assets/Audio/itemgetaudio.wav");
-    AudioDeath = Mix_LoadWAV("Assets/Audio/audiodeath.wav");
+    LoadAssets();
 
     //Snake Size
     int pSize = 3, inFront = 0, nextFront, nextToSave;
