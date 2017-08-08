@@ -102,8 +102,8 @@ const int Map[numberOfMaps][30][40] = {
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -784,12 +784,13 @@ int main(int argc, char* agrs[]) {
 			tSurface = TTF_RenderText_Solid(tFont, "NIVEL CONCLUIDO!", messageTextColor);	
 			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
 
-			tRect.x = 270; 
-			tRect.y = 290;
-			tSurface = TTF_RenderText_Solid(tFont, "TEMPO TOTAL =", messageTextColor);	
+			tRect.x = 325; 
+			tRect.y = 250;
+			tSurface = TTF_RenderText_Solid(tFont, "TEMPO TOTAL:", messageTextColor);	
 			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
 
-			tRect.x = 470; 
+			tRect.x = 400; 
+			tRect.y = 320;
 			tSurface = TTF_RenderText_Solid(tFont, to_string(totalTime).c_str(), messageTextColor);	
 			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
 
@@ -812,13 +813,15 @@ int main(int argc, char* agrs[]) {
 				}
 			}
 
-
-
-
-
 			currentMap++;
 			score = 0;
 			reqFood += 10;
+
+			if (currentMap == 3) {
+				currentMap = 0;
+				reqFood = 10;
+			}
+
 			//Puts reset time
 			resetTime = SDL_GetTicks();	
 
