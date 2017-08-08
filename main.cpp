@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <stdio.h>
 #include <SDL.h>
@@ -8,11 +9,6 @@
 #include <time.h>
 
 using namespace std;
-
-
-//String para teste
-string palavra = " Oi";
-
 
 
 //Number of Maps
@@ -200,7 +196,13 @@ const int maxSize = 70;
 const int upTime = 100;
 
 //Score in number
-int Score = 0;
+int score = 0;
+//Required number of food to go to the next level
+int reqFood = 10;
+//Time since start turn
+int totalTime = 0;
+//Time in reset
+int resetTime = 0;
 
 //Define Window sizes
 const int WINDOW_SIZE_X = 1000, WINDOW_SIZE_Y = 600;
@@ -217,6 +219,8 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Surface* pImage = NULL;
 //Food Image
 SDL_Surface* foodImage = NULL;
+//No Food Image
+SDL_Surface* nofoodImage = NULL;
 //Wall Image
 SDL_Surface* wallImage = NULL;
 
@@ -275,6 +279,8 @@ void LoadAssets() {
 	pImage = IMG_Load("Assets/Art/player.png");
 	//Load food image
 	foodImage = IMG_Load("Assets/Art/food.png");
+	//Load no food image
+	nofoodImage = IMG_Load("Assets/Art/no-food.png");
 	//Load wall image
 	wallImage = IMG_Load("Assets/Art/wall.png");
 
@@ -283,7 +289,7 @@ void LoadAssets() {
 	//Load title font
 	tTitleFont = TTF_OpenFont("Assets/Fonts/OpenSans-Regular.ttf", fontSize + 6);
 	//Make surface with font
-    tTitleSurface = TTF_RenderText_Solid(tTitleFont, palavra, tColor);    
+    tTitleSurface = TTF_RenderText_Solid(tTitleFont, "Snake", tColor);    
 
     //Load audio files
     AudioItem = Mix_LoadWAV("Assets/Audio/itemgetaudio.wav");
@@ -345,23 +351,58 @@ void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {
 		playerRect.y = pPos[i].y;					
 
 		SDL_BlitSurface(pImage, NULL, gScreenSurface, &playerRect);
-	}
+	}	
 	
 	//Title
 	SDL_BlitSurface(tTitleSurface, NULL, gScreenSurface, &tRect);
 	//Score
-	tRect.x = 800; //Change rect pos x
+	tRect.x = 810; //Change rect pos x
 	tRect.y = 70; //Change rect pos y
-	tSurface = TTF_RenderText_Solid(tFont, "Score: ", tColor);	
+	tSurface = TTF_RenderText_Solid(tFont, "Tempo:", tColor);	
 	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-
-
+	tRect.x = 895; //Change rect pos x
+	tRect.y = 70; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, to_string(totalTime).c_str(), tColor); // Draws time
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 810; //Change rect pos x
+	tRect.y = 120; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Faltam:", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
 
 	//Paints Food on screen
 	SDL_BlitSurface(foodImage, NULL, gScreenSurface, &fPos);	
-	//Updates Screen
-	SDL_UpdateWindowSurface(gWindow);
+	
+}
 
+void DrawFoodRequired() {
+
+	SDL_Rect reqRect;
+	reqRect.x = 810;
+	reqRect.y = 180;
+
+	for (int i = 0; i < score; i++) {
+
+		SDL_BlitSurface(foodImage, NULL, gScreenSurface, &reqRect);
+
+		reqRect.x += 40;
+
+		if (reqRect.x > 1000) {
+			reqRect.x = 810;
+			reqRect.y += 40;
+		}
+	}
+
+	for (int i = score; i < reqFood; i++) {
+		
+		SDL_BlitSurface(nofoodImage, NULL, gScreenSurface, &reqRect);
+
+		reqRect.x += 40;
+
+		if (reqRect.x > 1000) {
+			reqRect.x = 810;
+			reqRect.y += 40;
+		}
+	}
 }
 
 SDL_Rect FoodRandomizer(SDL_Rect f, position player[], int size) {
@@ -462,7 +503,9 @@ int main(int argc, char* agrs[]) {
 	
 	UpdateGameScreen(playerPos, foodPos, pSize);
 
-	
+	//First value for reset Time
+	resetTime = SDL_GetTicks();
+
 	while (!quit && pSize != maxSize) {
 		while (SDL_PollEvent(&e)) {
 
@@ -589,6 +632,8 @@ int main(int argc, char* agrs[]) {
 			//If food is in the next place that snake will go...
 			if (newPos.x == foodPos.x && newPos.y == foodPos.y) {
 
+				score++;
+
 				Mix_PlayChannel(-1, AudioItem, 0);
 
 				foodPos.x = -60;
@@ -655,8 +700,7 @@ int main(int argc, char* agrs[]) {
 
 					}
 				}
-			}
-			
+			}			
 		}	
 
 		while (willCrash && !quit) {
@@ -692,7 +736,12 @@ int main(int argc, char* agrs[]) {
 					inFront = 0;
 
 				 	//startTime = SDL_GetTicks();
-					willCrash = false;				
+					willCrash = false;		
+
+					//Resets score
+					score = 0;	
+					//Puts reset time
+					resetTime = SDL_GetTicks();	
 
 				}
 			}
@@ -700,7 +749,102 @@ int main(int argc, char* agrs[]) {
 			getInput = false;
 		}		
 
+		totalTime = (SDL_GetTicks() - resetTime) / 1000;
 		UpdateGameScreen(playerPos, foodPos, pSize);
+		DrawFoodRequired();
+		//Updates Screen
+		SDL_UpdateWindowSurface(gWindow);
+
+		if (score == reqFood) {
+
+			bool ready = false;
+
+			SDL_Rect playerNext;
+			playerNext.x = newPos.x;
+			playerNext.y = newPos.y;
+
+			SDL_BlitSurface(pImage, NULL, gScreenSurface, &playerNext);
+
+			SDL_Rect bckRect;
+			bckRect.w = 600;
+			bckRect.h = 300;
+			bckRect.x = 100;
+			bckRect.y = 150;
+
+			SDL_FillRect(gScreenSurface, &bckRect, SDL_MapRGB(gScreenSurface->format, 102, 69, 62));
+
+			//Messagebox text color
+			SDL_Color messageTextColor = {255, 255, 255};
+
+			//Text rect 
+			SDL_Rect tRect;
+			tRect.x = 300; 
+			tRect.y = 170;
+
+			tSurface = TTF_RenderText_Solid(tFont, "NIVEL CONCLUIDO!", messageTextColor);	
+			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+			tRect.x = 270; 
+			tRect.y = 290;
+			tSurface = TTF_RenderText_Solid(tFont, "TEMPO TOTAL =", messageTextColor);	
+			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+			tRect.x = 470; 
+			tSurface = TTF_RenderText_Solid(tFont, to_string(totalTime).c_str(), messageTextColor);	
+			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+			tRect.x = 220; 
+			tRect.y = 400;
+			tSurface = TTF_RenderText_Solid(tFont, "APERTE ENTER PARA CONTINUAR", messageTextColor);	
+			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+
+			SDL_UpdateWindowSurface(gWindow);
+
+			while (!ready) {
+
+				while (SDL_PollEvent(&e)) {
+
+					if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN) {
+
+						ready = true;
+					}
+				}
+			}
+
+
+
+
+
+			currentMap++;
+			score = 0;
+			reqFood += 10;
+			//Puts reset time
+			resetTime = SDL_GetTicks();	
+
+			pSize = 3;					
+
+	 		playerPos[0].x = 400;
+			playerPos[0].y = 300;
+			playerPos[1].x = 400;
+			playerPos[1].y = 300;
+			playerPos[2].x = 400;
+			playerPos[2].y = 300;
+
+			for (int i = 3; i < maxSize; i++) {
+				playerPos[i].x = 0;
+				playerPos[i].y = 0;
+		 	}
+
+		 	//Ramdomize food position concerning walls and player positions
+			foodPos = FoodRandomizer(foodPos, playerPos, pSize);
+
+			pSpeed.x = 20;
+			pSpeed.y = 0;
+
+			inFront = 0;			
+		}
+
 	}
 
     EndAll();        
