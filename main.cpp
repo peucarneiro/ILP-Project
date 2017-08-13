@@ -206,6 +206,8 @@ const int WINDOW_SIZE_X = 1000, WINDOW_SIZE_Y = 600;
 
 //Checks if snake will crash
 bool willCrash = false;
+//Checks if randomized food position is free
+bool isPosFree = false;
 
 //Window
 SDL_Window* gWindow = NULL;
@@ -238,8 +240,16 @@ SDL_Color tColor = {255, 0, 0};
 SDL_Surface* tTitleSurface = NULL;
 //Text surface
 SDL_Surface* tSurface = NULL;
+
 //Text rect (this is for the title since it is the first to render)
 SDL_Rect tRect;
+//Player rect in screen
+SDL_Rect playerRect;
+//Wall rect in screen
+SDL_Rect wallRect;
+//Difine Rect to paint black and white 
+SDL_Rect blackRect, whiteRect;
+	
 
 //Player speed (-20 or 0 or 20)  in x and y
 typedef struct {
@@ -294,28 +304,7 @@ void LoadAssets() {
     AudioDeath = Mix_LoadWAV("Assets/Audio/audiodeath.wav");
 }
 
-void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {	
-
-	//Player rect in screen
-	SDL_Rect playerRect;
-	playerRect.w = 20;
-	playerRect.h = 20;
-
-	//Wall rect in screen
-	SDL_Rect wallRect;
-	wallRect.w = 20;
-	wallRect.h = 20;	
-
-	//Difine Rect to paint black and white (for now)
-	SDL_Rect blackRect, whiteRect;
-	blackRect.x = 0;
-	blackRect.y = 0;
-	blackRect.w = 800;
-	blackRect.h = 600;
-	whiteRect.x = 800;
-	whiteRect.y = 0;	
-	whiteRect.w = WINDOW_SIZE_X - 800;
-	whiteRect.h = 260;
+void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {		
 
 	//Paints game background
 	SDL_FillRect(gScreenSurface, &blackRect, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
@@ -356,6 +345,9 @@ void WriteText() {
 	tRect.x = 850; //Center title
 	tRect.y = 10;
 
+	//Cleans Surface
+	SDL_FreeSurface(tSurface);
+
 	//Title
 	SDL_BlitSurface(tTitleSurface, NULL, gScreenSurface, &tRect);
 	//Score
@@ -380,7 +372,7 @@ void WriteText() {
 
 SDL_Rect FoodRandomizer(SDL_Rect f, position player[], int size) {
 
-	bool isPosFree = false;
+	isPosFree = false;
 
 	while (!isPosFree) {
 
@@ -426,7 +418,6 @@ int main(int argc, char* agrs[]) {
 
     LoadAssets();
 
-    SDL_Rect whiteRect;
 	whiteRect.x = 800;
 	whiteRect.y = 0;	
 	whiteRect.w = WINDOW_SIZE_X - 800;
@@ -469,6 +460,22 @@ int main(int argc, char* agrs[]) {
 	tRect.y = 530; //Change rect pos y
 	tSurface = TTF_RenderText_Solid(tFont, "Tecla Enter", tColor);
 	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+	//Define Color Rects
+	blackRect.x = 0;
+	blackRect.y = 0;
+	blackRect.w = 800;
+	blackRect.h = 600;
+	whiteRect.x = 800;
+	whiteRect.y = 0;
+	whiteRect.w = WINDOW_SIZE_X - 800;
+	whiteRect.h = 260;
+	//Define Player Rect
+	playerRect.w = 20;
+	playerRect.h = 20;
+	//Define Wall Rect
+	wallRect.w = 20;
+	wallRect.h = 20;
 
     //Snake Size
     int pSize = 3, inFront = 0, nextFront, nextToSave;
@@ -834,7 +841,7 @@ int main(int argc, char* agrs[]) {
 
 					resetTime = SDL_GetTicks();
 					score = 0;
-					
+
 					willCrash = false;
 				}
 			}
@@ -853,6 +860,3 @@ int main(int argc, char* agrs[]) {
     EndAll();        
     return 0;
 }
-
-
-
