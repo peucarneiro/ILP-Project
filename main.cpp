@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <stdio.h>
 #include <SDL.h>
@@ -190,15 +189,13 @@ const int Map[numberOfMaps][30][40] = {
 };
 
 //Defines max size
-const int maxSize = 70;
+const int maxSize = 300;
 
 //Defines time per ScreenUpdate in miliseconds
 const int upTime = 100;
 
 //Score in number
 int score = 0;
-//Required number of food to go to the next level
-int reqFood = 10;
 //Time since start turn
 int totalTime = 0;
 //Time in reset
@@ -241,7 +238,8 @@ SDL_Color tColor = {255, 0, 0};
 SDL_Surface* tTitleSurface = NULL;
 //Text surface
 SDL_Surface* tSurface = NULL;
-
+//Text rect (this is for the title since it is the first to render)
+SDL_Rect tRect;
 
 //Player speed (-20 or 0 or 20)  in x and y
 typedef struct {
@@ -306,12 +304,7 @@ void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {
 	//Wall rect in screen
 	SDL_Rect wallRect;
 	wallRect.w = 20;
-	wallRect.h = 20;
-
-	//Text rect (this is for the title since it is the first to render)
-	SDL_Rect tRect;
-	tRect.x = 850; //Center title
-	tRect.y = 10;
+	wallRect.h = 20;	
 
 	//Difine Rect to paint black and white (for now)
 	SDL_Rect blackRect, whiteRect;
@@ -322,7 +315,7 @@ void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {
 	whiteRect.x = 800;
 	whiteRect.y = 0;	
 	whiteRect.w = WINDOW_SIZE_X - 800;
-	whiteRect.h = 600;
+	whiteRect.h = 260;
 
 	//Paints game background
 	SDL_FillRect(gScreenSurface, &blackRect, SDL_MapRGB(gScreenSurface->format, 0, 0, 0));
@@ -351,58 +344,38 @@ void UpdateGameScreen(position pPos[], SDL_Rect fPos, int size) {
 		playerRect.y = pPos[i].y;					
 
 		SDL_BlitSurface(pImage, NULL, gScreenSurface, &playerRect);
-	}	
-	
-	//Title
-	SDL_BlitSurface(tTitleSurface, NULL, gScreenSurface, &tRect);
-	//Score
-	tRect.x = 810; //Change rect pos x
-	tRect.y = 70; //Change rect pos y
-	tSurface = TTF_RenderText_Solid(tFont, "Tempo:", tColor);	
-	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-	tRect.x = 895; //Change rect pos x
-	tRect.y = 70; //Change rect pos y
-	tSurface = TTF_RenderText_Solid(tFont, to_string(totalTime).c_str(), tColor); // Draws time
-	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-	tRect.x = 810; //Change rect pos x
-	tRect.y = 120; //Change rect pos y
-	tSurface = TTF_RenderText_Solid(tFont, "Faltam:", tColor);
-	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	}			
 
 	//Paints Food on screen
 	SDL_BlitSurface(foodImage, NULL, gScreenSurface, &fPos);	
 	
 }
 
-void DrawFoodRequired() {
+void WriteText() {
+	
+	tRect.x = 850; //Center title
+	tRect.y = 10;
 
-	SDL_Rect reqRect;
-	reqRect.x = 810;
-	reqRect.y = 180;
+	//Title
+	SDL_BlitSurface(tTitleSurface, NULL, gScreenSurface, &tRect);
+	//Score
+	tRect.x = 835; //Change rect pos x
+	tRect.y = 100; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Tempo:", tColor);	
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 920; //Change rect pos x
+	tRect.y = 100; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, to_string(totalTime).c_str(), tColor); // Draws time
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	
+	tRect.x = 840; //Change rect pos x
+	tRect.y = 180; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Pontos:", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 930; //Change rect pos x	
+	tSurface = TTF_RenderText_Solid(tFont, to_string(score).c_str(), tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);	
 
-	for (int i = 0; i < score; i++) {
-
-		SDL_BlitSurface(foodImage, NULL, gScreenSurface, &reqRect);
-
-		reqRect.x += 40;
-
-		if (reqRect.x > 1000) {
-			reqRect.x = 810;
-			reqRect.y += 40;
-		}
-	}
-
-	for (int i = score; i < reqFood; i++) {
-		
-		SDL_BlitSurface(nofoodImage, NULL, gScreenSurface, &reqRect);
-
-		reqRect.x += 40;
-
-		if (reqRect.x > 1000) {
-			reqRect.x = 810;
-			reqRect.y += 40;
-		}
-	}
 }
 
 SDL_Rect FoodRandomizer(SDL_Rect f, position player[], int size) {
@@ -453,6 +426,50 @@ int main(int argc, char* agrs[]) {
 
     LoadAssets();
 
+    SDL_Rect whiteRect;
+	whiteRect.x = 800;
+	whiteRect.y = 0;	
+	whiteRect.w = WINDOW_SIZE_X - 800;
+	whiteRect.h = 600;
+
+	//Paints score menu background
+	SDL_FillRect(gScreenSurface, &whiteRect, SDL_MapRGB(gScreenSurface->format, 255, 255, 255));
+
+    tRect.x = 815; //Change rect pos x
+	tRect.y = 260; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Mapa Anterior:", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 860; //Change rect pos x
+	tRect.y = 290; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Tecla 4", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+	tRect.x = 815; //Change rect pos x
+	tRect.y = 340; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Proximo Mapa:", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 860; //Change rect pos x
+	tRect.y = 370; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Tecla 6", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+	tRect.x = 825; //Change rect pos x
+	tRect.y = 420; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Mapa Atual:", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 960; //Change rect pos x	
+	tSurface = TTF_RenderText_Solid(tFont, to_string(currentMap + 1).c_str(), tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
+	tRect.x = 850; //Change rect pos x
+	tRect.y = 500; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Morreu?", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+	tRect.x = 840; //Change rect pos x
+	tRect.y = 530; //Change rect pos y
+	tSurface = TTF_RenderText_Solid(tFont, "Tecla Enter", tColor);
+	SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
+
     //Snake Size
     int pSize = 3, inFront = 0, nextFront, nextToSave;
 
@@ -502,11 +519,12 @@ int main(int argc, char* agrs[]) {
 	int startTime = SDL_GetTicks(), endTime;
 	
 	UpdateGameScreen(playerPos, foodPos, pSize);
+	WriteText();
 
 	//First value for reset Time
 	resetTime = SDL_GetTicks();
 
-	while (!quit && pSize != maxSize) {
+	while (!quit) {
 		while (SDL_PollEvent(&e)) {
 
 			//Checks if player clicked on X or pushed Esc
@@ -569,6 +587,9 @@ int main(int argc, char* agrs[]) {
 
 					inFront = 0;
 
+					resetTime = SDL_GetTicks();
+					score = 0;
+
 				} else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_4) {
 
 					currentMap--;
@@ -598,6 +619,9 @@ int main(int argc, char* agrs[]) {
 					pSpeed.y = 0;
 
 					inFront = 0;
+
+					resetTime = SDL_GetTicks();
+					score = 0;
 				} 
 			}			
 		}
@@ -743,6 +767,75 @@ int main(int argc, char* agrs[]) {
 					//Puts reset time
 					resetTime = SDL_GetTicks();	
 
+				} else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_6) {
+
+					currentMap++;
+
+					if (currentMap == numberOfMaps) {
+						currentMap = 0;
+					}
+
+					pSize = 3;					
+
+			 		playerPos[0].x = 400;
+					playerPos[0].y = 300;
+					playerPos[1].x = 400;
+					playerPos[1].y = 300;
+					playerPos[2].x = 400;
+					playerPos[2].y = 300;
+
+					for (int i = 3; i < maxSize; i++) {
+						playerPos[i].x = 0;
+						playerPos[i].y = 0;
+				 	}
+
+				 	//Ramdomize food position concerning walls and player positions
+					foodPos = FoodRandomizer(foodPos, playerPos, pSize);
+
+					pSpeed.x = 20;
+					pSpeed.y = 0;
+
+					inFront = 0;
+
+					resetTime = SDL_GetTicks();
+					score = 0;
+
+					willCrash = false;
+
+				} else if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_4) {
+
+					currentMap--;
+
+					if (currentMap == -1) {
+						currentMap = numberOfMaps - 1;
+					}
+
+					pSize = 3;					
+
+			 		playerPos[0].x = 400;
+					playerPos[0].y = 300;
+					playerPos[1].x = 400;
+					playerPos[1].y = 300;
+					playerPos[2].x = 400;
+					playerPos[2].y = 300;
+
+					for (int i = 3; i < maxSize; i++) {
+						playerPos[i].x = 0;
+						playerPos[i].y = 0;
+				 	}
+
+				 	//Ramdomize food position concerning walls and player positions
+					foodPos = FoodRandomizer(foodPos, playerPos, pSize);
+
+					pSpeed.x = 20;
+					pSpeed.y = 0;
+
+					inFront = 0;
+
+					resetTime = SDL_GetTicks();
+					score = 0;
+					
+					willCrash = false;
 				}
 			}
 
@@ -751,102 +844,9 @@ int main(int argc, char* agrs[]) {
 
 		totalTime = (SDL_GetTicks() - resetTime) / 1000;
 		UpdateGameScreen(playerPos, foodPos, pSize);
-		DrawFoodRequired();
+		WriteText();
 		//Updates Screen
-		SDL_UpdateWindowSurface(gWindow);
-
-		if (score == reqFood) {
-
-			bool ready = false;
-
-			SDL_Rect playerNext;
-			playerNext.x = newPos.x;
-			playerNext.y = newPos.y;
-
-			SDL_BlitSurface(pImage, NULL, gScreenSurface, &playerNext);
-
-			SDL_Rect bckRect;
-			bckRect.w = 600;
-			bckRect.h = 300;
-			bckRect.x = 100;
-			bckRect.y = 150;
-
-			SDL_FillRect(gScreenSurface, &bckRect, SDL_MapRGB(gScreenSurface->format, 102, 69, 62));
-
-			//Messagebox text color
-			SDL_Color messageTextColor = {255, 255, 255};
-
-			//Text rect 
-			SDL_Rect tRect;
-			tRect.x = 300; 
-			tRect.y = 170;
-
-			tSurface = TTF_RenderText_Solid(tFont, "NIVEL CONCLUIDO!", messageTextColor);	
-			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-
-			tRect.x = 325; 
-			tRect.y = 250;
-			tSurface = TTF_RenderText_Solid(tFont, "TEMPO TOTAL:", messageTextColor);	
-			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-
-			tRect.x = 400; 
-			tRect.y = 320;
-			tSurface = TTF_RenderText_Solid(tFont, to_string(totalTime).c_str(), messageTextColor);	
-			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-
-			tRect.x = 220; 
-			tRect.y = 400;
-			tSurface = TTF_RenderText_Solid(tFont, "APERTE ENTER PARA CONTINUAR", messageTextColor);	
-			SDL_BlitSurface(tSurface, NULL, gScreenSurface, &tRect);
-
-
-			SDL_UpdateWindowSurface(gWindow);
-
-			while (!ready) {
-
-				while (SDL_PollEvent(&e)) {
-
-					if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_RETURN) {
-
-						ready = true;
-					}
-				}
-			}
-
-			currentMap++;
-			score = 0;
-			reqFood += 10;
-
-			if (currentMap == 3) {
-				currentMap = 0;
-				reqFood = 10;
-			}
-
-			//Puts reset time
-			resetTime = SDL_GetTicks();	
-
-			pSize = 3;					
-
-	 		playerPos[0].x = 400;
-			playerPos[0].y = 300;
-			playerPos[1].x = 400;
-			playerPos[1].y = 300;
-			playerPos[2].x = 400;
-			playerPos[2].y = 300;
-
-			for (int i = 3; i < maxSize; i++) {
-				playerPos[i].x = 0;
-				playerPos[i].y = 0;
-		 	}
-
-		 	//Ramdomize food position concerning walls and player positions
-			foodPos = FoodRandomizer(foodPos, playerPos, pSize);
-
-			pSpeed.x = 20;
-			pSpeed.y = 0;
-
-			inFront = 0;			
-		}
+		SDL_UpdateWindowSurface(gWindow);	
 
 	}
 
